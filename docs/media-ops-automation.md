@@ -2,6 +2,10 @@
 
 作成日: 2026-07-05 ／ 稼働環境: Mac Studio (M4 Max/36GB, bayashi-labnoMac-Studio.local)
 
+> **2026-07-12 更新**: 定期ジョブの実行基盤を OpenClaw cron から **slave デーモン**（`~/Repo/slave`、launchd: `com.bayashi.slave-daemon`）へ移設した。
+> スクリプト正本は `~/Repo/slave/scripts/shikaku/`、ジョブ投入は `src/scheduler.ts`、通知は Studiojobbot（Telegram）。
+> Sentry Cron Monitors により発火漏れも検知される。以下の OpenClaw に関する記述は移設前の記録として残す。
+
 ## 1. 目的
 
 メディア「シカクのミカタ」の運営（コンテンツ作成〜改修〜効果測定）をAIエージェントに委譲し、
@@ -91,11 +95,11 @@
 - Telegramに届く提案・PRを見て、GitHubでマージするだけ
 - ボットへのDMでgemma4に質問・指示も可能（24時間応答）
 
-### トラブル時
-- ジョブの状態: `openclaw cron list`（Last/Statusを確認）
-- ゲートウェイ: `openclaw status` ／ 再起動: `openclaw gateway restart`
-- ログ: `openclaw logs --follow`
-- 記事生成を止めたい: `openclaw cron remove <shikaku-article-writerのID>`、または記事PRを2本未マージのまま放置（自動スキップ）
+### トラブル時（2026-07-12 以降: slave 基盤）
+- ジョブの状態: `sqlite3 ~/Repo/slave/data/slave.db "SELECT type,status,datetime(created_at,'unixepoch','+9 hours') FROM jobs WHERE type LIKE 'shikaku%' ORDER BY created_at DESC LIMIT 5;"`
+- デーモン: `launchctl list | grep slave-daemon` ／ 再起動: `launchctl kickstart -k gui/501/com.bayashi.slave-daemon`
+- ログ: `~/Repo/slave/logs/`（WARN/ERROR のみ）、発火漏れは Sentry（bayashi-labinc/slave）の Cron Monitors
+- 記事生成を止めたい: `~/Repo/slave/src/scheduler.ts` の該当 cron をコメントアウトしてデーモン再起動、または記事PRを2本未マージのまま放置（自動スキップ）
 
 ### 既知の制約・注意
 - ローカルLLM（gemma4:26b）にweb系ツールが有効＋サンドボックス無し（セキュリティ監査CRITICAL）。
