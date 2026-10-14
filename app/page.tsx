@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getAllPosts, getAllCategories } from "@/lib/mdx";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
 import HeroSection from "@/components/home/HeroSection";
@@ -6,6 +7,12 @@ import FeaturedArticle from "@/components/home/FeaturedArticle";
 import QuickFinder from "@/components/home/QuickFinder";
 import LatestArticles from "@/components/home/LatestArticles";
 import CtaSection from "@/components/home/CtaSection";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: SITE_URL,
+  },
+};
 
 function OrganizationJsonLd() {
   const jsonLd = {
